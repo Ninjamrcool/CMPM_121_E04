@@ -76,6 +76,11 @@ const lancerEnemyType: EnemyType = {
 };
 
 interface Sector {
+  name: string;
+  title: string;
+  subtitle: string;
+  minStartTime: number;
+  maxStartTime: number;
   waves: Wave[];
 }
 
@@ -132,6 +137,11 @@ function alternatingValue(
 const sectors: Sector[] = [
   // Sector 1
   {
+    name: "Outer Drift",
+    title: "Sector 1: Outer Drift",
+    subtitle: "Scouts ahead",
+    minStartTime: 1560,
+    maxStartTime: 1800,
     waves: [
       {
         x: linearChange(144, 64),
@@ -180,6 +190,11 @@ const sectors: Sector[] = [
 
   // Sector 2
   {
+    name: "Shatter Belt",
+    title: "Sector 2: Shatter Belt",
+    subtitle: "Divers Incoming",
+    minStartTime: 1800,
+    maxStartTime: 2040,
     waves: [
       {
         x: linearChange(130, 44),
@@ -235,6 +250,11 @@ const sectors: Sector[] = [
 
   // Sector 3
   {
+    name: "Gun Lanes",
+    title: "Sector 3: Gun Lanes",
+    subtitle: "Turrets online",
+    minStartTime: 1920,
+    maxStartTime: 2160,
     waves: [
       {
         x: constantValue(240),
@@ -290,6 +310,11 @@ const sectors: Sector[] = [
 
   // Sector 4
   {
+    name: "Lancer Gate",
+    title: "Sector 4: Lancer Gate",
+    subtitle: "Crossfire",
+    minStartTime: 1920,
+    maxStartTime: 2160,
     waves: [
       {
         x: alternatingValue(-30, 510),
@@ -345,6 +370,11 @@ const sectors: Sector[] = [
 
   // Sector 5
   {
+    name: "Last Approach",
+    title: "Sector 5: Last Approach",
+    subtitle: "Everything they have",
+    minStartTime: 2040,
+    maxStartTime: 2280,
     waves: [
       {
         x: linearChange(176, 64),
@@ -404,6 +434,16 @@ const sectors: Sector[] = [
       },
     ],
   },
+
+  // Sector 6
+  {
+    name: "The Warden",
+    title: "WARNING",
+    subtitle: "The Warden approaches",
+    minStartTime: -1,
+    maxStartTime: -1,
+    waves: [],
+  },
 ];
 
 /**
@@ -424,9 +464,6 @@ export class GameScene extends Phaser.Scene implements Arena {
   private pickups: ShmupPowerUp[] = [];
   private sector = -1;
   private sectorStart = 0;
-  private enemy1;
-  private enemy2;
-  private enemy3;
   private boss: ShmupBoss | null = null;
   private bossDueAt = 0;
   private victoryAt = 0;
@@ -488,14 +525,13 @@ export class GameScene extends Phaser.Scene implements Arena {
 
     if (this.mode === "title") {
       this.hud.setMode("title");
-      this.hud.setRoute([
-        "Outer Drift",
-        "Shatter Belt",
-        "Gun Lanes",
-        "Lancer Gate",
-        "Last Approach",
-        "The Warden",
-      ]);
+
+      const sectorNames: string[] = [];
+      for (const sector of sectors) {
+        sectorNames.push(sector.name);
+      }
+      this.hud.setRoute(sectorNames);
+
       this.hud.setSector(-1);
       this.hud.setBoss(null);
       this.hud.say("");
@@ -749,6 +785,7 @@ export class GameScene extends Phaser.Scene implements Arena {
 
   private advanceRoute(): void {
     if (this.gameOver) return;
+
     if (this.victoryAt > 0) {
       if (this.now === this.victoryAt) {
         // fade out, then switch modes
@@ -759,32 +796,21 @@ export class GameScene extends Phaser.Scene implements Arena {
       }
       return;
     }
+
     if (this.bossDueAt > 0) {
       if (this.now === this.bossDueAt) this.startBoss();
       return;
     }
     if (this.boss) return;
-    const t = this.now - this.sectorStart;
+
+    const sectorTime = this.now - this.sectorStart;
+
     if (
-      this.sector === 0 && t >= 1560 && (this.enemies.length === 0 || t >= 1800)
+      sectorTime >= sectors[this.sector].minStartTime &&
+      (this.enemies.length === 0 ||
+        sectorTime >= sectors[this.sector].maxStartTime)
     ) {
-      this.startSector(1);
-    } else if (
-      this.sector === 1 && t >= 1800 && (this.enemies.length === 0 || t >= 2040)
-    ) {
-      this.startSector(2);
-    } else if (
-      this.sector === 2 && t >= 1920 && (this.enemies.length === 0 || t >= 2160)
-    ) {
-      this.startSector(3);
-    } else if (
-      this.sector === 3 && t >= 1920 && (this.enemies.length === 0 || t >= 2160)
-    ) {
-      this.startSector(4);
-    } else if (
-      this.sector === 4 && t >= 2040 && (this.enemies.length === 0 || t >= 2280)
-    ) {
-      this.startSector(5);
+      this.startSector(this.sector + 1);
     }
   }
 
@@ -792,18 +818,13 @@ export class GameScene extends Phaser.Scene implements Arena {
     this.sector = index;
     this.hud.setSector(index);
     this.sectorStart = this.now;
-    if (index === 0) {
-      this.hud.announce("Sector 1: Outer Drift", "Scouts ahead");
-    } else if (index === 1) {
-      this.hud.announce("Sector 2: Shatter Belt", "Divers incoming");
-    } else if (index === 2) {
-      this.hud.announce("Sector 3: Gun Lanes", "Turrets online");
-    } else if (index === 3) {
-      this.hud.announce("Sector 4: Lancer Gate", "Crossfire");
-    } else if (index === 4) {
-      this.hud.announce("Sector 5: Last Approach", "Everything they have");
-    } else {
-      this.hud.announce("WARNING", "The Warden approaches");
+
+    this.hud.announce(
+      sectors[this.sector].title,
+      sectors[this.sector].subtitle,
+    );
+
+    if (index === 5) {
       this.hud.shudder(true);
       play(this, "warn", 0.6);
       this.bossDueAt = this.now + BOSS_WARNING_TICKS;
