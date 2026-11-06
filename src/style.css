@@ -1,5 +1,28 @@
 /* Neon Warden: the HUD panels tilt toward the screen like an arcade cabinet. */
 
+:root {
+  --main-color: rgba(94, 242, 255, 1);
+  --main-color-light: rgba(232, 253, 255, 1);
+  --main-color-border: rgba(94, 242, 255, 0.35);
+  --main-color-shadow: rgba(94, 242, 255, 0.15);
+  --accent-color: #ffe066;
+  --boss-color: #ff4d6d;
+  --basic-text-color: #6f86a8;
+
+  --screen-width: 480px;
+  --panel-width: 190px;
+  --panel-overlap: 18px;
+  --panel-rotation: 24deg;
+  --route-gap: 10px;
+  --banner-perspective: 600px;
+  --default-border-radius: 10px;
+
+  --panel-transition-duration: 400ms;
+  --border-style: 1px solid;
+  --font: Orbitron, "Trebuchet MS", sans-serif;
+  --text-transform: uppercase;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -11,13 +34,14 @@ body {
   place-content: center;
   gap: 14px;
   background: radial-gradient(ellipse at 50% 30%, #1a0f3a, #04020c 70%);
-  color: #e8fdff;
+  color: var(--main-color-light);
   font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
 }
 
 .cabinet {
   display: grid;
-  grid-template-columns: 190px 480px 190px;
+  grid-template-columns: var(--panel-width) var(--screen-width)
+    var(--panel-width);
   align-items: center;
   perspective: 900px;
 }
@@ -28,24 +52,25 @@ body {
   display: grid;
   gap: 14px;
   padding: 14px;
-  border: 1px solid rgba(94, 242, 255, 0.35);
-  border-radius: 10px;
+  border: var(--border-style) var(--main-color-border);
+  border-radius: var(--default-border-radius);
   background: rgba(14, 10, 34, 0.86);
-  box-shadow: 0 0 24px rgba(94, 242, 255, 0.15), inset 0 0 18px rgba(94, 242,
+  box-shadow: 0 0 24px var(--main-color-shadow), inset 0 0 18px rgba(94, 242,
     255, 0.08);
-  transition: opacity 400ms, transform 400ms;
+  transition: opacity var(--panel-transition-duration), transform
+    var(--panel-transition-duration);
 }
 
 /* Each panel swings toward the screen and slightly overlaps its edge. */
 .panel-left {
   transform-origin: right center;
-  transform: translateX(18px) rotateY(24deg);
+  transform: translateX(var(--panel-overlap)) rotateY(var(--panel-rotation));
 }
 
 .panel-right {
   transform-origin: left center;
-  transform: translateX(-18px) rotateY(calc(-1 *
-    24deg));
+  transform: translateX(calc(-1 * var(--panel-overlap))) rotateY(calc(-1 *
+    var(--panel-rotation)));
 }
 
 .cabinet[data-mode="title"] .panel,
@@ -55,21 +80,21 @@ body {
 
 h2 {
   margin: 0 0 4px;
-  font: 600 11px/1 Orbitron, "Trebuchet MS", sans-serif;
+  font: 600 11px/1 var(--font);
   letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #6f86a8;
+  text-transform: var(--text-transform);
+  color: var(--basic-text-color);
 }
 
 output {
   font-size: 22px;
-  color: #5ef2ff;
+  color: var(--main-color);
   text-shadow: 0 0 6px currentColor, 0 0 18px currentColor;
 }
 
 #best {
   font-size: 15px;
-  color: #ffe066;
+  color: var(--accent-color);
 }
 
 .pips,
@@ -81,7 +106,7 @@ output {
 .pip,
 .cell {
   height: 12px;
-  border: 1px solid currentColor;
+  border: var(--border-style) currentColor;
   opacity: 0.3;
   transition: opacity 200ms, box-shadow 200ms;
 }
@@ -91,7 +116,7 @@ output {
 }
 
 .cell {
-  color: #ffe066;
+  color: var(--accent-color);
 }
 
 .pip.lit,
@@ -108,13 +133,13 @@ output {
   display: none;
   margin: 0;
   padding: 4px 8px;
-  border: 1px solid #ffe066;
-  border-radius: 10px;
-  color: #ffe066;
+  border: var(--border-style) var(--accent-color);
+  border-radius: var(--default-border-radius);
+  color: var(--accent-color);
   text-align: center;
-  font: 600 11px/1.4 Orbitron, "Trebuchet MS", sans-serif;
+  font: 600 11px/1.4 var(--font);
   letter-spacing: 0.2em;
-  text-transform: uppercase;
+  text-transform: var(--text-transform);
   animation: blink 1.2s steps(2) infinite;
 }
 
@@ -124,11 +149,11 @@ output {
 
 .screen {
   position: relative;
-  width: 480px;
+  width: var(--screen-width);
   height: 640px;
-  border-radius: 10px;
+  border-radius: var(--default-border-radius);
   overflow: hidden;
-  box-shadow: 0 0 0 2px rgba(94, 242, 255, 0.35), 0 0 40px rgba(94, 242, 255,
+  box-shadow: 0 0 0 2px var(--main-color-border), 0 0 40px rgba(94, 242, 255,
     0.2);
 }
 
@@ -144,19 +169,19 @@ output {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 10px;
+  gap: var(--route-gap);
 }
 
 .stop {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--route-gap);
   font-size: 12px;
-  color: #6f86a8;
+  color: var(--basic-text-color);
 }
 
 .stop[data-state="cleared"] {
-  color: #5ef2ff;
+  color: var(--main-color);
 }
 
 .stop[data-state="cleared"] .stop-dot {
@@ -164,7 +189,7 @@ output {
 }
 
 .stop[data-state="current"] {
-  color: #ffe066;
+  color: var(--accent-color);
   text-shadow: 0 0 6px currentColor, 0 0 18px currentColor;
 }
 
@@ -173,11 +198,11 @@ output {
 }
 
 .stop:last-child {
-  color: #ff4d6d;
+  color: var(--boss-color);
 }
 
 .boss {
-  color: #ff4d6d;
+  color: var(--boss-color);
 }
 
 .boss h2 {
@@ -186,7 +211,7 @@ output {
 
 .boss-meter {
   height: 10px;
-  border: 1px solid currentColor;
+  border: var(--border-style) currentColor;
   border-radius: 2px;
 }
 
@@ -213,7 +238,7 @@ output {
     transparent);
   pointer-events: none;
   opacity: 0;
-  transform: perspective(600px) rotateX(90deg);
+  transform: perspective(var(--banner-perspective)) rotateX(90deg);
 }
 
 .banner.show {
@@ -221,17 +246,17 @@ output {
 }
 
 .banner strong {
-  font: 700 26px/1.1 Orbitron, "Trebuchet MS", sans-serif;
+  font: 700 26px/1.1 var(--font);
   letter-spacing: 0.12em;
-  color: #ffe066;
+  color: var(--accent-color);
   text-shadow: 0 0 6px currentColor, 0 0 18px currentColor;
 }
 
 .banner span {
   font-size: 13px;
   letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: #e8fdff;
+  text-transform: var(--text-transform);
+  color: var(--main-color-light);
 }
 
 .caption {
@@ -239,7 +264,7 @@ output {
   inset: auto 8% 6%;
   margin: 0;
   padding: 10px 14px;
-  border-left: 3px solid #5ef2ff;
+  border-left: 3px solid var(--main-color);
   background: rgba(4, 2, 12, 0.75);
   font-size: 14px;
   line-height: 1.5;
@@ -257,7 +282,7 @@ output {
   margin: 0;
   text-align: center;
   font-size: 12px;
-  color: #6f86a8;
+  color: var(--basic-text-color);
 }
 
 /* Impacts shake the whole cabinet; the panels keep their tilt while shaking. */
@@ -298,16 +323,16 @@ output {
 @keyframes banner {
   0% {
     opacity: 0;
-    transform: perspective(600px) rotateX(90deg);
+    transform: perspective(var(--banner-perspective)) rotateX(90deg);
   }
   15%,
   80% {
     opacity: 1;
-    transform: perspective(600px) rotateX(0);
+    transform: perspective(var(--banner-perspective)) rotateX(0);
   }
   100% {
     opacity: 0;
-    transform: perspective(600px) rotateX(-90deg);
+    transform: perspective(var(--banner-perspective)) rotateX(-90deg);
   }
 }
 
@@ -327,7 +352,7 @@ output {
 /* Narrow windows: stack the panels flat above and below the screen. */
 @media (max-width: 920px) {
   .cabinet {
-    grid-template-columns: 480px;
+    grid-template-columns: var(--screen-width);
   }
 
   .panel {
