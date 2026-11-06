@@ -33,6 +33,379 @@ const WARP_AT = 9;
 const CREDITS_AT = 11;
 const RETURN_AT = 18;
 
+interface EnemyType {
+  name: string;
+  hp: number;
+  score: number;
+  radius: number;
+  dropChance: number;
+  canShoot: boolean;
+}
+
+const droneEnemyType: EnemyType = {
+  name: "drone",
+  hp: 2,
+  score: 100,
+  radius: 13,
+  dropChance: 0.015,
+  canShoot: true,
+};
+const dartEnemyType: EnemyType = {
+  name: "dart",
+  hp: 1,
+  score: 150,
+  radius: 12,
+  dropChance: 0.015,
+  canShoot: false,
+};
+const turretEnemyType: EnemyType = {
+  name: "turret",
+  hp: 12,
+  score: 400,
+  radius: 19,
+  dropChance: 0.3,
+  canShoot: true,
+};
+const lancerEnemyType: EnemyType = {
+  name: "lancer",
+  hp: 4,
+  score: 250,
+  radius: 15,
+  dropChance: 0.06,
+  canShoot: true,
+};
+
+interface Sector {
+  waves: Wave[];
+}
+
+interface Wave {
+  x: (index: number) => number;
+  y: (index: number) => number;
+  sectorTime: (index: number) => number;
+  enemyCount: number;
+  enemyType: EnemyType;
+}
+
+function constantValue(value: number): (index: number) => number {
+  return () => value;
+}
+
+function linearChange(
+  start: number,
+  change: number,
+): (index: number) => number {
+  return (index: number) => {
+    return start + change * index;
+  };
+}
+
+function groupedLinearChange(
+  start: number,
+  change: number,
+  groupSize: number,
+): (index: number) => number {
+  return (index: number) => {
+    return start + change * Math.floor(index / groupSize);
+  };
+}
+
+function absoluteValueChange(
+  start: number,
+  change: number,
+  center: number,
+): (index: number) => number {
+  return (index: number) => {
+    return start + change * Math.abs(index - center);
+  };
+}
+
+function alternatingValue(
+  even: number,
+  odd: number,
+): (index: number) => number {
+  return (index: number) => {
+    return index % 2 === 0 ? even : odd;
+  };
+}
+
+const sectors: Sector[] = [
+  // Sector 1
+  {
+    waves: [
+      {
+        x: linearChange(144, 64),
+        y: constantValue(-30),
+        sectorTime: constantValue(60),
+        enemyCount: 4,
+        enemyType: droneEnemyType,
+      },
+      {
+        x: linearChange(80, 44),
+        y: constantValue(-30),
+        sectorTime: absoluteValueChange(360, 10, 2),
+        enemyCount: 5,
+        enemyType: droneEnemyType,
+      },
+      {
+        x: linearChange(224, 44),
+        y: constantValue(-30),
+        sectorTime: absoluteValueChange(660, 10, 2),
+        enemyCount: 5,
+        enemyType: droneEnemyType,
+      },
+      {
+        x: linearChange(80, 64),
+        y: constantValue(-30),
+        sectorTime: constantValue(960),
+        enemyCount: 6,
+        enemyType: droneEnemyType,
+      },
+      {
+        x: constantValue(120),
+        y: constantValue(-30),
+        sectorTime: linearChange(1200, 24),
+        enemyCount: 4,
+        enemyType: droneEnemyType,
+      },
+      { // column
+        x: constantValue(360),
+        y: constantValue(-30),
+        sectorTime: linearChange(1260, 24),
+        enemyCount: 4,
+        enemyType: droneEnemyType,
+      },
+    ],
+  },
+
+  // Sector 2
+  {
+    waves: [
+      {
+        x: linearChange(130, 44),
+        y: constantValue(-30),
+        sectorTime: absoluteValueChange(60, 10, 2.5),
+        enemyCount: 6,
+        enemyType: droneEnemyType,
+      },
+      {
+        x: linearChange(144, 64),
+        y: constantValue(-30),
+        sectorTime: constantValue(300),
+        enemyCount: 4,
+        enemyType: dartEnemyType,
+      },
+      {
+        x: constantValue(144),
+        y: constantValue(-30),
+        sectorTime: linearChange(600, 24),
+        enemyCount: 5,
+        enemyType: dartEnemyType,
+      },
+      {
+        x: constantValue(336),
+        y: constantValue(-30),
+        sectorTime: linearChange(720, 24),
+        enemyCount: 5,
+        enemyType: dartEnemyType,
+      },
+      {
+        x: linearChange(48, 64),
+        y: constantValue(-30),
+        sectorTime: constantValue(1020),
+        enemyCount: 7,
+        enemyType: droneEnemyType,
+      },
+      {
+        x: linearChange(152, 44),
+        y: constantValue(-30),
+        sectorTime: absoluteValueChange(1140, 10, 2),
+        enemyCount: 5,
+        enemyType: dartEnemyType,
+      },
+      {
+        x: linearChange(80, 64),
+        y: constantValue(-30),
+        sectorTime: constantValue(1440),
+        enemyCount: 6,
+        enemyType: dartEnemyType,
+      },
+    ],
+  },
+
+  // Sector 3
+  {
+    waves: [
+      {
+        x: constantValue(240),
+        y: constantValue(-30),
+        sectorTime: constantValue(60),
+        enemyCount: 1,
+        enemyType: turretEnemyType,
+      },
+      {
+        x: linearChange(130, 44),
+        y: constantValue(-30),
+        sectorTime: absoluteValueChange(240, 10, 2.5),
+        enemyCount: 6,
+        enemyType: droneEnemyType,
+      },
+      {
+        x: linearChange(208, 64),
+        y: constantValue(-30),
+        sectorTime: constantValue(540),
+        enemyCount: 2,
+        enemyType: turretEnemyType,
+      },
+      {
+        x: constantValue(240),
+        y: constantValue(-30),
+        sectorTime: linearChange(840, 24),
+        enemyCount: 6,
+        enemyType: dartEnemyType,
+      },
+      {
+        x: linearChange(208, 64),
+        y: constantValue(-30),
+        sectorTime: constantValue(1080),
+        enemyCount: 2,
+        enemyType: turretEnemyType,
+      },
+      {
+        x: linearChange(80, 64),
+        y: constantValue(-30),
+        sectorTime: constantValue(1140),
+        enemyCount: 6,
+        enemyType: droneEnemyType,
+      },
+      {
+        x: linearChange(176, 64),
+        y: constantValue(-30),
+        sectorTime: constantValue(1500),
+        enemyCount: 3,
+        enemyType: turretEnemyType,
+      },
+    ],
+  },
+
+  // Sector 4
+  {
+    waves: [
+      {
+        x: alternatingValue(-30, 510),
+        y: groupedLinearChange(70, 50, 2),
+        sectorTime: groupedLinearChange(60, 30, 2),
+        enemyCount: 4,
+        enemyType: lancerEnemyType,
+      },
+      {
+        x: linearChange(130, 44),
+        y: constantValue(-30),
+        sectorTime: absoluteValueChange(360, 10, 2.5),
+        enemyCount: 6,
+        enemyType: dartEnemyType,
+      },
+      {
+        x: alternatingValue(-30, 510),
+        y: groupedLinearChange(70, 50, 2),
+        sectorTime: groupedLinearChange(600, 30, 2),
+        enemyCount: 6,
+        enemyType: lancerEnemyType,
+      },
+      {
+        x: linearChange(208, 64),
+        y: constantValue(-30),
+        sectorTime: constantValue(780),
+        enemyCount: 2,
+        enemyType: turretEnemyType,
+      },
+      {
+        x: alternatingValue(-30, 510),
+        y: groupedLinearChange(70, 50, 2),
+        sectorTime: groupedLinearChange(1140, 30, 2),
+        enemyCount: 6,
+        enemyType: lancerEnemyType,
+      },
+      {
+        x: linearChange(86, 44),
+        y: constantValue(-30),
+        sectorTime: absoluteValueChange(1260, 10, 3.5),
+        enemyCount: 8,
+        enemyType: droneEnemyType,
+      },
+      {
+        x: linearChange(16, 64),
+        y: constantValue(-30),
+        sectorTime: constantValue(1560),
+        enemyCount: 8,
+        enemyType: dartEnemyType,
+      },
+    ],
+  },
+
+  // Sector 5
+  {
+    waves: [
+      {
+        x: linearChange(176, 64),
+        y: constantValue(-30),
+        sectorTime: constantValue(60),
+        enemyCount: 3,
+        enemyType: turretEnemyType,
+      },
+      {
+        x: alternatingValue(-30, 510),
+        y: groupedLinearChange(70, 50, 2),
+        sectorTime: groupedLinearChange(180, 30, 2),
+        enemyCount: 6,
+        enemyType: lancerEnemyType,
+      },
+      {
+        x: constantValue(120),
+        y: constantValue(-30),
+        sectorTime: linearChange(540, 24),
+        enemyCount: 6,
+        enemyType: dartEnemyType,
+      },
+      {
+        x: constantValue(360),
+        y: constantValue(-30),
+        sectorTime: linearChange(540, 24),
+        enemyCount: 6,
+        enemyType: dartEnemyType,
+      },
+      {
+        x: linearChange(64, 44),
+        y: constantValue(-30),
+        sectorTime: absoluteValueChange(900, 10, 4),
+        enemyCount: 9,
+        enemyType: droneEnemyType,
+      },
+      {
+        x: linearChange(208, 64),
+        y: constantValue(-30),
+        sectorTime: constantValue(1020),
+        enemyCount: 2,
+        enemyType: turretEnemyType,
+      },
+      {
+        x: alternatingValue(-30, 510),
+        y: groupedLinearChange(70, 50, 2),
+        sectorTime: groupedLinearChange(1320, 30, 2),
+        enemyCount: 8,
+        enemyType: lancerEnemyType,
+      },
+      {
+        x: linearChange(86, 44),
+        y: constantValue(-30),
+        sectorTime: absoluteValueChange(1560, 10, 3.5),
+        enemyCount: 8,
+        enemyType: dartEnemyType,
+      },
+    ],
+  },
+];
+
 /**
  * The whole game. mode is one of "title", "play", "attract" or "cutscene";
  * switching modes fades out and restarts this scene in the new mode.
@@ -437,783 +810,41 @@ export class GameScene extends Phaser.Scene implements Arena {
     }
   }
 
+  private spawnWave(
+    sectorTime: number,
+    wave: Wave,
+  ): void {
+    for (let i = 0; i < wave.enemyCount; i++) {
+      if (sectorTime !== wave.sectorTime(i)) {
+        continue;
+      }
+
+      const enemy = new ShmupPrefabSprite(
+        this,
+        wave.x(i),
+        wave.y(i),
+        wave.enemyType.name,
+        wave.enemyType.hp,
+        wave.enemyType.score,
+        wave.enemyType.radius,
+        wave.enemyType.dropChance,
+        wave.enemyType.canShoot,
+        false,
+        wave.x(i),
+        i % 2 === 0 ? 1 : -1,
+      );
+      this.enemies.push(enemy);
+    }
+  }
+
   private updateProgression(): void {
-    const t = this.now - this.sectorStart;
-    let n = 0;
-    if (this.sector === 0) {
-      // sector 1, wave 1: four drones in a line
-      for (let i = 0; i < 4; i++) {
-        if (t === 60) {
-          const x = 240 + (i - 1.5) * 64;
-          const enemy = new ShmupPrefabSprite(
-            this,
-            x,
-            -30,
-            "drone",
-            2,
-            100,
-            13,
-            0.015,
-            true,
-            false,
-            x,
-            i % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(enemy);
-        }
-      }
-      // sector 1, wave 2: five drones in a vee
-      for (let i = 0; i < 5; i++) {
-        if (t === 360 + Math.abs(i - 2) * 10) {
-          const x = 168 + (i - 2) * 44;
-          const enemy = new ShmupPrefabSprite(
-            this,
-            x,
-            -30,
-            "drone",
-            2,
-            100,
-            13,
-            0.015,
-            true,
-            false,
-            x,
-            i % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(enemy);
-        }
-      }
-      // sector 1, wave 3: five drones in a vee
-      for (let i = 0; i < 5; i++) {
-        if (t === 660 + Math.abs(i - 2) * 10) {
-          const x = 312 + (i - 2) * 44;
-          const enemy = new ShmupPrefabSprite(
-            this,
-            x,
-            -30,
-            "drone",
-            2,
-            100,
-            13,
-            0.015,
-            true,
-            false,
-            x,
-            i % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(enemy);
-        }
-      }
-      // sector 1, wave 4: six drones in a line
-      for (let i = 0; i < 6; i++) {
-        if (t === 960) {
-          const x = 240 + (i - 2.5) * 64;
-          const enemy = new ShmupPrefabSprite(
-            this,
-            x,
-            -30,
-            "drone",
-            2,
-            100,
-            13,
-            0.015,
-            true,
-            false,
-            x,
-            i % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(enemy);
-        }
-      }
-      // sector 1, wave 5: four drones in a column
-      for (let i = 0; i < 4; i++) {
-        if (t === 1200 + i * 24) {
-          const x = 120;
-          const enemy = new ShmupPrefabSprite(
-            this,
-            x,
-            -30,
-            "drone",
-            2,
-            100,
-            13,
-            0.015,
-            true,
-            false,
-            x,
-            i % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(enemy);
-        }
-      }
-      // sector 1, wave 6: four drones in a column
-      for (let i = 0; i < 4; i++) {
-        if (t === 1260 + i * 24) {
-          const x = 360;
-          const enemy = new ShmupPrefabSprite(
-            this,
-            x,
-            -30,
-            "drone",
-            2,
-            100,
-            13,
-            0.015,
-            true,
-            false,
-            x,
-            i % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(enemy);
-        }
-      }
-    } else if (this.sector === 1) {
-      // sector 2, wave 1: six drones in a vee
-      for (let i = 0; i < 6; i++) {
-        if (t === 60 + Math.abs(i - 2.5) * 10) {
-          const x = 240 + (i - 2.5) * 44;
-          const enemy = new ShmupPrefabSprite(
-            this,
-            x,
-            -30,
-            "drone",
-            2,
-            100,
-            13,
-            0.015,
-            true,
-            false,
-            x,
-            i % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(enemy);
-        }
-      }
-      // sector 2, wave 2: four darts in a line
-      for (let i = 0; i < 4; i++) {
-        if (t === 300) {
-          const x = 240 + (i - 1.5) * 64;
-          this.enemy1 = new ShmupPrefabSprite(
-            this,
-            x,
-            -30,
-            "dart",
-            1,
-            150,
-            12,
-            0.015,
-            false,
-            false,
-            x,
-            i % 2 === 0 ? 1 : -1,
-          );
-          this.enemy1.dropChance = 0.015;
-          this.enemies.push(this.enemy1);
-        }
-      }
-      // sector 2, wave 3: five darts in a column
-      for (let i = 0; i < 5; i++) {
-        if (t === 600 + i * 24) {
-          const x = 144;
-          this.enemy2 = new ShmupPrefabSprite(
-            this,
-            x,
-            -30,
-            "dart",
-            1,
-            150,
-            12,
-            0.015,
-            false,
-            false,
-            x,
-            i % 2 === 0 ? 1 : -1,
-          );
-          this.enemy2.dropChance = 0.015;
-          this.enemies.push(this.enemy2);
-        }
-      }
-      // sector 2, wave 4: five darts in a column
-      for (let i = 0; i < 5; i++) {
-        if (t === 720 + i * 24) {
-          const x = 336;
-          this.enemy3 = new ShmupPrefabSprite(
-            this,
-            x,
-            -30,
-            "dart",
-            1,
-            150,
-            12,
-            0.015,
-            false,
-            false,
-            x,
-            i % 2 === 0 ? 1 : -1,
-          );
-          this.enemy2.dropChance = 0.015;
-          this.enemies.push(this.enemy3);
-        }
-      }
-      // sector 2, wave 5: seven drones in a line
-      for (let i = 0; i < 7; i++) {
-        if (t === 1020) {
-          const x = 240 + (i - 3) * 64;
-          const enemy = new ShmupPrefabSprite(
-            this,
-            x,
-            -30,
-            "drone",
-            2,
-            100,
-            13,
-            0.015,
-            true,
-            false,
-            x,
-            i % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(enemy);
-        }
-      }
-      // sector 2, wave 6: five darts in a vee
-      for (let i = 0; i < 5; i++) {
-        if (t === 1140 + Math.abs(i - 2) * 10) {
-          const x = 240 + (i - 2) * 44;
-          const enemy = new ShmupPrefabSprite(
-            this,
-            x,
-            -30,
-            "dart",
-            1,
-            150,
-            12,
-            0.015,
-            false,
-            false,
-            x,
-            i % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(enemy);
-        }
-      }
-      // sector 2, wave 7: six darts in a line
-      for (let i = 0; i < 6; i++) {
-        if (t === 1440) {
-          const x = 240 + (i - 2.5) * 64;
-          const enemy = new ShmupPrefabSprite(
-            this,
-            x,
-            -30,
-            "dart",
-            1,
-            150,
-            12,
-            0.015,
-            false,
-            false,
-            x,
-            i % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(enemy);
-        }
-      }
-    } else if (this.sector === 2) {
-      // sector 3, wave 1: one turrets in a line
-      for (let i = 0; i < 1; i++) {
-        if (t === 60) {
-          const x = 240 + (i - 0) * 64;
-          const enemy = new ShmupPrefabSprite(
-            this,
-            x,
-            -30,
-            "turret",
-            12,
-            400,
-            19,
-            0.3,
-            true,
-            false,
-            x,
-            i % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(enemy);
-        }
-      }
-      // sector 3, wave 2: six drones in a vee
-      for (let i = 0; i < 6; i++) {
-        if (t === 240 + Math.abs(i - 2.5) * 10) {
-          const x = 240 + (i - 2.5) * 44;
-          const enemy = new ShmupPrefabSprite(
-            this,
-            x,
-            -30,
-            "drone",
-            2,
-            100,
-            13,
-            0.015,
-            true,
-            false,
-            x,
-            i % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(enemy);
-        }
-      }
-      // sector 3, wave 3: two turrets in a line
-      for (let i = 0; i < 2; i++) {
-        if (t === 540) {
-          const x = 240 + (i - 0.5) * 64;
-          const enemy = new ShmupPrefabSprite(
-            this,
-            x,
-            -30,
-            "turret",
-            12,
-            400,
-            19,
-            0.3,
-            true,
-            false,
-            x,
-            i % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(enemy);
-        }
-      }
-      // sector 3, wave 4: six darts in a column
-      for (let i = 0; i < 6; i++) {
-        if (t === 840 + i * 24) {
-          const x = 240;
-          const enemy = new ShmupPrefabSprite(
-            this,
-            x,
-            -30,
-            "dart",
-            1,
-            150,
-            12,
-            0.015,
-            false,
-            false,
-            x,
-            i % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(enemy);
-        }
-      }
-      // sector 3, wave 5: two turrets in a line
-      for (let i = 0; i < 2; i++) {
-        if (t === 1080) {
-          const x = 240 + (i - 0.5) * 64;
-          const enemy = new ShmupPrefabSprite(
-            this,
-            x,
-            -30,
-            "turret",
-            12,
-            400,
-            19,
-            0.3,
-            true,
-            false,
-            x,
-            i % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(enemy);
-        }
-      }
-      // sector 3, wave 6: six drones in a line
-      for (let i = 0; i < 6; i++) {
-        if (t === 1140) {
-          const x = 240 + (i - 2.5) * 64;
-          const enemy = new ShmupPrefabSprite(
-            this,
-            x,
-            -30,
-            "drone",
-            2,
-            100,
-            13,
-            0.015,
-            true,
-            false,
-            x,
-            i % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(enemy);
-        }
-      }
-      // sector 3, wave 7: pair of turrets to close out the sector
-      for (let i = 0; i < 3; i++) {
-        if (t === 1500) {
-          const x = 240 + (i - 1) * 64;
-          const enemy = new ShmupPrefabSprite(
-            this,
-            x,
-            -30,
-            "turret",
-            12,
-            400,
-            19,
-            0.3,
-            true,
-            false,
-            x,
-            i % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(enemy);
-        }
-      }
-    } else if (this.sector === 3) {
-      /* sector 4 is sector 3 but faster */
-      /* six lancers from both sides */
-      n = 0;
-      while (n < 4) {
-        if (t === 60 + Math.floor(n / 2) * 30) {
-          const spawn_x = n % 2 === 0 ? -30 : 510;
-          const new_enemy = new ShmupPrefabSprite(
-            this,
-            spawn_x,
-            70 + Math.floor(n / 2) * 50,
-            "lancer",
-            4,
-            250,
-            15,
-            0.06,
-            true,
-            false,
-            spawn_x,
-            n % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(new_enemy);
-        }
-        n++;
-      }
-      /* dart x6 (vee) */
-      n = 0;
-      while (n < 6) {
-        if (t === 360 + Math.abs(n - 2.5) * 10) {
-          const spawn_x = 240 + (n - 2.5) * 44;
-          const new_enemy = new ShmupPrefabSprite(
-            this,
-            spawn_x,
-            -30,
-            "dart",
-            1,
-            150,
-            12,
-            0.015,
-            false,
-            false,
-            spawn_x,
-            n % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(new_enemy);
-        }
-        n++;
-      }
-      /* lancer x6 (pincer) */
-      n = 0;
-      while (n < 6) {
-        if (t === 600 + Math.floor(n / 2) * 30) {
-          const spawn_x = n % 2 === 0 ? -30 : 510;
-          const new_enemy = new ShmupPrefabSprite(
-            this,
-            spawn_x,
-            70 + Math.floor(n / 2) * 50,
-            "lancer",
-            4,
-            250,
-            15,
-            0.06,
-            true,
-            false,
-            spawn_x,
-            n % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(new_enemy);
-        }
-        n++;
-      }
-      /* turret x2 (line) */
-      n = 0;
-      while (n < 2) {
-        if (t === 780) {
-          const spawn_x = 240 + (n - 0.5) * 64;
-          const new_enemy = new ShmupPrefabSprite(
-            this,
-            spawn_x,
-            -30,
-            "turret",
-            12,
-            400,
-            19,
-            0.3,
-            true,
-            false,
-            spawn_x,
-            n % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(new_enemy);
-        }
-        n++;
-      }
-      /* lancer x6 (pincer) */
-      n = 0;
-      while (n < 6) {
-        if (t === 1140 + Math.floor(n / 2) * 30) {
-          const spawn_x = n % 2 === 0 ? -30 : 510;
-          const new_enemy = new ShmupPrefabSprite(
-            this,
-            spawn_x,
-            70 + Math.floor(n / 2) * 50,
-            "lancer",
-            4,
-            250,
-            15,
-            0.06,
-            true,
-            false,
-            spawn_x,
-            n % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(new_enemy);
-        }
-        n++;
-      }
-      /* drone x8 (vee) */
-      n = 0;
-      while (n < 8) {
-        if (t === 1260 + Math.abs(n - 3.5) * 10) {
-          const spawn_x = 240 + (n - 3.5) * 44;
-          const new_enemy = new ShmupPrefabSprite(
-            this,
-            spawn_x,
-            -30,
-            "drone",
-            2,
-            100,
-            13,
-            0.015,
-            true,
-            false,
-            spawn_x,
-            n % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(new_enemy);
-        }
-        n++;
-      }
-      /* dart x8 (line) */
-      n = 0;
-      while (n < 8) {
-        if (t === 1560) {
-          const spawn_x = 240 + (n - 3.5) * 64;
-          const new_enemy = new ShmupPrefabSprite(
-            this,
-            spawn_x,
-            -30,
-            "dart",
-            1,
-            150,
-            12,
-            0.015,
-            false,
-            false,
-            spawn_x,
-            n % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(new_enemy);
-        }
-        n++;
-      }
-    } else if (this.sector === 4) {
-      /* turret x3 (line) */
-      n = 0;
-      while (n < 3) {
-        if (t === 60) {
-          const spawn_x = 240 + (n - 1) * 64;
-          const new_enemy = new ShmupPrefabSprite(
-            this,
-            spawn_x,
-            -30,
-            "turret",
-            12,
-            400,
-            19,
-            0.3,
-            true,
-            false,
-            spawn_x,
-            n % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(new_enemy);
-        }
-        n++;
-      }
-      /* lancer x6 (pincer) */
-      n = 0;
-      while (n < 6) {
-        if (t === 180 + Math.floor(n / 2) * 30) {
-          const spawn_x = n % 2 === 0 ? -30 : 510;
-          const new_enemy = new ShmupPrefabSprite(
-            this,
-            spawn_x,
-            70 + Math.floor(n / 2) * 50,
-            "lancer",
-            4,
-            250,
-            15,
-            0.06,
-            true,
-            false,
-            spawn_x,
-            n % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(new_enemy);
-        }
-        n++;
-      }
-      /* dart x6 (column) */
-      n = 0;
-      while (n < 6) {
-        if (t === 540 + n * 24) {
-          const spawn_x = 120;
-          const new_enemy = new ShmupPrefabSprite(
-            this,
-            spawn_x,
-            -30,
-            "dart",
-            1,
-            150,
-            12,
-            0.015,
-            false,
-            false,
-            spawn_x,
-            n % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(new_enemy);
-        }
-        n++;
-      }
-      /* dart x6 (column) */
-      n = 0;
-      while (n < 6) {
-        if (t === 540 + n * 24) {
-          const spawn_x = 360;
-          const new_enemy = new ShmupPrefabSprite(
-            this,
-            spawn_x,
-            -30,
-            "dart",
-            1,
-            150,
-            12,
-            0.015,
-            false,
-            false,
-            spawn_x,
-            n % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(new_enemy);
-        }
-        n++;
-      }
-      /* drone x9 (vee) */
-      n = 0;
-      while (n < 9) {
-        if (t === 900 + Math.abs(n - 4) * 10) {
-          const spawn_x = 240 + (n - 4) * 44;
-          const new_enemy = new ShmupPrefabSprite(
-            this,
-            spawn_x,
-            -30,
-            "drone",
-            2,
-            100,
-            13,
-            0.015,
-            true,
-            false,
-            spawn_x,
-            n % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(new_enemy);
-        }
-        n++;
-      }
-      /* turret x2 (line) */
-      n = 0;
-      while (n < 2) {
-        if (t === 1020) {
-          const spawn_x = 240 + (n - 0.5) * 64;
-          const new_enemy = new ShmupPrefabSprite(
-            this,
-            spawn_x,
-            -30,
-            "turret",
-            12,
-            400,
-            19,
-            0.3,
-            true,
-            false,
-            spawn_x,
-            n % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(new_enemy);
-        }
-        n++;
-      }
-      /* lancer x8 (pincer) */
-      n = 0;
-      while (n < 8) {
-        if (t === 1320 + Math.floor(n / 2) * 30) {
-          const spawn_x = n % 2 === 0 ? -30 : 510;
-          const new_enemy = new ShmupPrefabSprite(
-            this,
-            spawn_x,
-            70 + Math.floor(n / 2) * 50,
-            "lancer",
-            4,
-            250,
-            15,
-            0.06,
-            true,
-            false,
-            spawn_x,
-            n % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(new_enemy);
-        }
-        n++;
-      }
-      /* dart x8 (vee) */
-      n = 0;
-      while (n < 8) {
-        if (t === 1560 + Math.abs(n - 3.5) * 10) {
-          const spawn_x = 240 + (n - 3.5) * 44;
-          const new_enemy = new ShmupPrefabSprite(
-            this,
-            spawn_x,
-            -30,
-            "dart",
-            1,
-            150,
-            12,
-            0.015,
-            false,
-            false,
-            spawn_x,
-            n % 2 === 0 ? 1 : -1,
-          );
-          this.enemies.push(new_enemy);
-        }
-        n++;
-      }
+    if (this.sector >= sectors.length) {
+      return;
+    }
+
+    const sectorTime = this.now - this.sectorStart;
+    for (let i = 0; i < sectors[this.sector].waves.length; i++) {
+      this.spawnWave(sectorTime, sectors[this.sector].waves[i]);
     }
   }
 
