@@ -16,6 +16,11 @@ import { loadSounds, play } from "./sounds.ts";
 import { makeTextures, TINTS } from "./textures.ts";
 import { Backdrop } from "./backdrop.ts";
 import { sectors, Wave } from "./route.ts";
+import {
+  droneEnemyPrefabType,
+  shieldPowerUpPrefabType,
+  spreadPowerUpPrefabType,
+} from "./prefabTypes.ts";
 
 const TICK_MS = 1000 / 60;
 const START_LIVES = 3;
@@ -325,15 +330,9 @@ export class GameScene extends Phaser.Scene implements Arena {
         this,
         x,
         y,
-        "drone",
-        2,
-        100,
-        13,
-        0.015,
-        true,
-        false,
         x,
         x < WIDTH / 2 ? 1 : -1,
+        droneEnemyPrefabType,
       ),
     );
   }
@@ -432,15 +431,9 @@ export class GameScene extends Phaser.Scene implements Arena {
         this,
         wave.x(i),
         wave.y(i),
-        wave.enemyType.name,
-        wave.enemyType.hp,
-        wave.enemyType.score,
-        wave.enemyType.radius,
-        wave.enemyType.dropChance,
-        wave.enemyType.canShoot,
-        false,
         wave.x(i),
         i % 2 === 0 ? 1 : -1,
+        wave.enemyType,
       );
       this.enemies.push(enemy);
     }
@@ -507,10 +500,10 @@ export class GameScene extends Phaser.Scene implements Arena {
     }
     this.explode(enemy.x, enemy.y, 1);
     if (this.rng.chance(enemy.dropChance)) {
-      const kind = this.player.power < 3 && this.rng.chance(0.5)
-        ? "spread"
-        : "shield";
-      this.pickups.push(new ShmupPowerUp(this, enemy.x, enemy.y, kind));
+      const powerUpType = this.player.power < 3 && this.rng.chance(0.5)
+        ? spreadPowerUpPrefabType
+        : shieldPowerUpPrefabType;
+      this.pickups.push(new ShmupPowerUp(this, enemy.x, enemy.y, powerUpType));
     }
   }
 

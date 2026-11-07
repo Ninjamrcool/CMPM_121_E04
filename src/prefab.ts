@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { Actor, type Arena, WIDTH } from "./actors.ts";
+import { bossEnemyPrefabType, PrefabType } from "./prefabTypes.ts";
 
 function aim(from: { x: number; y: number }, arena: Arena): number {
   return Math.atan2(arena.player.y - from.y, arena.player.x - from.x);
@@ -16,22 +17,29 @@ export class ShmupPrefabSprite extends Actor {
   // spin: turrets rotate using this
   spin = 0;
 
+  public kind: string;
+  public hp: number;
+  public score: number;
+  public dropChance: number;
+  public canShoot: boolean;
+  public isPickup: boolean;
+
   constructor(
     scene: Phaser.Scene,
     x: number,
     y: number,
-    public kind: string,
-    public hp: number,
-    public score: number,
-    radius: number,
-    public dropChance: number,
-    public canShoot: boolean,
-    public isPickup: boolean,
     public homeX: number,
     public side: number,
+    prefabType: PrefabType,
   ) {
-    super(scene, x, y, kind, radius);
-    this.maxHp = hp;
+    super(scene, x, y, prefabType.kind, prefabType.radius);
+    this.kind = prefabType.kind;
+    this.hp = prefabType.hp;
+    this.maxHp = prefabType.hp;
+    this.score = prefabType.score;
+    this.dropChance = prefabType.dropChance;
+    this.canShoot = prefabType.canShoot;
+    this.isPickup = prefabType.isPickup;
   }
 
   step(arena: Arena): void {
@@ -125,15 +133,9 @@ export class ShmupBoss extends ShmupPrefabSprite {
       scene,
       WIDTH / 2,
       -90,
-      "boss",
-      900,
-      10000,
-      46,
-      0,
-      true,
-      false,
       WIDTH / 2,
       1,
+      bossEnemyPrefabType,
     );
     this.core = scene.add.image(this.x, this.y, "boss-core").setBlendMode(
       Phaser.BlendModes.ADD,
@@ -208,8 +210,13 @@ export class ShmupBoss extends ShmupPrefabSprite {
 }
 
 export class ShmupPowerUp extends ShmupPrefabSprite {
-  constructor(scene: Phaser.Scene, x: number, y: number, kind) {
-    super(scene, x, y, kind, 0, 0, 14, 0, false, true, x, 1);
+  constructor(
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    prefabType: PrefabType,
+  ) {
+    super(scene, x, y, x, 1, prefabType);
   }
 
   override step(): void {
