@@ -2,12 +2,14 @@ import Phaser from "phaser";
 import {
   type Actor,
   type Arena,
+  BossSprite,
   Bullet,
+  EnemySprite,
   HEIGHT,
   Player,
+  PowerUp,
   WIDTH,
 } from "./actors.ts";
-import { BossSprite, EnemySprite, ShmupPowerUp } from "./prefab.ts";
 import type { Hud } from "./hud.ts";
 import type { LaunchOptions } from "./main.ts";
 import { AutoPilot, KeyboardPilot, type Pilot } from "./pilots.ts";
@@ -17,8 +19,11 @@ import { makeTextures, TINTS } from "./textures.ts";
 import { Backdrop } from "./backdrop.ts";
 import { sectors, Wave } from "./route.ts";
 import {
+  bulletPrefabType,
   droneEnemyPrefabType,
+  heavyBulletPrefabType,
   shieldPowerUpPrefabType,
+  shotBulletPrefabType,
   spreadPowerUpPrefabType,
 } from "./prefabTypes.ts";
 
@@ -54,7 +59,7 @@ export class GameScene extends Phaser.Scene implements Arena {
   private enemies: EnemySprite[] = [];
   private shots: Bullet[] = [];
   private bullets: Bullet[] = [];
-  private pickups: ShmupPowerUp[] = [];
+  private pickups: PowerUp[] = [];
   private sector = -1;
   private sectorStart = 0;
   private boss: BossSprite | null = null;
@@ -319,8 +324,8 @@ export class GameScene extends Phaser.Scene implements Arena {
     const vy = Math.sin(angle) * speed;
     this.bullets.push(
       heavy
-        ? new Bullet(this, x, y, "heavy", 8, vx, vy)
-        : new Bullet(this, x, y, "bullet", 5, vx, vy),
+        ? new Bullet(this, x, y, vx, vy, heavyBulletPrefabType)
+        : new Bullet(this, x, y, vx, vy, bulletPrefabType),
     );
   }
 
@@ -364,7 +369,7 @@ export class GameScene extends Phaser.Scene implements Arena {
     });
     for (const shot of this.player.step(controls)) {
       this.shots.push(
-        new Bullet(this, shot.x, shot.y, "shot", 6, shot.vx, -11),
+        new Bullet(this, shot.x, shot.y, shot.vx, -11, shotBulletPrefabType),
       );
       if (this.now % 2 === 0) play(this, "shoot", 0.25);
     }
@@ -503,7 +508,7 @@ export class GameScene extends Phaser.Scene implements Arena {
       const powerUpType = this.player.power < 3 && this.rng.chance(0.5)
         ? spreadPowerUpPrefabType
         : shieldPowerUpPrefabType;
-      this.pickups.push(new ShmupPowerUp(this, enemy.x, enemy.y, powerUpType));
+      this.pickups.push(new PowerUp(this, enemy.x, enemy.y, powerUpType));
     }
   }
 

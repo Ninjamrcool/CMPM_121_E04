@@ -1,5 +1,4 @@
-import { Arena, WIDTH } from "./actors.ts";
-import { EnemySprite } from "./prefab.ts";
+import { Arena, EnemySprite, WIDTH } from "./actors.ts";
 
 export interface PrefabType {
   kind: string;
@@ -111,4 +110,17 @@ export const spreadPowerUpPrefabType: PrefabType = {
 export const shieldPowerUpPrefabType: PrefabType = {
   kind: "shield",
   radius: 14,
+};
+
+export const bulletPrefabType: PrefabType = {
+  kind: "bullet",
+  radius: 5,
+};
+export const shotBulletPrefabType: PrefabType = {
+  kind: "shot",
+  radius: 6,
+};
+export const heavyBulletPrefabType: PrefabType = {
+  kind: "heavy",
+  radius: 8,
 };
