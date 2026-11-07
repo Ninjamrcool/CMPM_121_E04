@@ -1,132 +1,100 @@
 import Phaser from "phaser";
 import { Actor, type Arena, WIDTH } from "./actors.ts";
-import { bossEnemyPrefabType, PrefabType } from "./prefabTypes.ts";
-
-function aim(from: { x: number; y: number }, arena: Arena): number {
-  return Math.atan2(arena.player.y - from.y, arena.player.x - from.x);
-}
+import { bossEnemyPrefabType, EnemyType, PrefabType } from "./prefabTypes.ts";
 
 /**
  * Base class for everything the player can shoot or pick up: enemies, the
  * boss and power-ups. kind is the prefab's name and also its texture key.
  */
-export class ShmupPrefabSprite extends Actor {
-  maxHp: number;
-  flash = 0;
-  heading = 0;
-  // spin: turrets rotate using this
-  spin = 0;
-
+export class PrefabSprite extends Actor {
   public kind: string;
-  public hp: number;
-  public score: number;
-  public dropChance: number;
-  public canShoot: boolean;
-  public isPickup: boolean;
 
   constructor(
     scene: Phaser.Scene,
     x: number,
     y: number,
-    public homeX: number,
-    public side: number,
     prefabType: PrefabType,
   ) {
     super(scene, x, y, prefabType.kind, prefabType.radius);
     this.kind = prefabType.kind;
-    this.hp = prefabType.hp;
-    this.maxHp = prefabType.hp;
-    this.score = prefabType.score;
-    this.dropChance = prefabType.dropChance;
-    this.canShoot = prefabType.canShoot;
-    this.isPickup = prefabType.isPickup;
   }
 
-  step(arena: Arena): void {
+  step(_arena: Arena): void {
     this.age++;
     const { x, y } = this;
-    this.moveByKind(arena);
     this.vx = this.x - x;
     this.vy = this.y - y;
-    if (this.canShoot) this.fireWeapon(arena);
+  }
+}
+
+export class EnemySprite extends PrefabSprite {
+  private maxHp: number;
+  private flash: number = 0;
+  public heading: number = 0;
+
+  public homeX: number;
+  public side: number;
+  public hp: number;
+  public score: number;
+  public dropChance: number;
+  public move: (enemy: EnemySprite, arena: Arena) => void;
+  public fireWeapon: (enemy: EnemySprite, arena: Arena) => void;
+
+  constructor(
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    homeX: number,
+    side: number,
+    enemyType: EnemyType,
+  ) {
+    super(scene, x, y, enemyType.prefabType);
+    this.homeX = homeX;
+    this.side = side;
+    this.hp = enemyType.hp;
+    this.maxHp = enemyType.hp;
+    this.score = enemyType.score;
+    this.dropChance = enemyType.dropChance;
+    this.move = enemyType.move;
+    this.fireWeapon = enemyType.fireWeapon;
+  }
+
+  override step(arena: Arena): void {
+    super.step(arena);
+
+    this.move(this, arena);
+
+    this.fireWeapon(this, arena);
+
     this.flash = Math.max(0, this.flash - 1);
     if (this.flash > 0) {
       this.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL);
-    } else this.clearTint();
-  }
-
-  moveByKind(arena: Arena): void {
-    switch (this.kind) {
-      case "drone":
-        this.y += 1.5;
-        this.x = this.homeX + Math.sin(this.age * 0.045) * 46 * this.side;
-        break;
-      case "dart":
-        // Drift in slowly, then commit to a dive toward where the player was.
-        if (this.age < 50) {
-          this.y += 1.2;
-        } else {
-          if (this.age === 50) {
-            this.heading = Math.sign(arena.player.x - this.x) * 1.4;
-          }
-          this.y += 5.2;
-          this.x += this.heading;
-        }
-        break;
-      case "turret":
-        if (this.age < 70) this.y += 1.6;
-        else if (this.age > 420) this.y += 1.2;
-        this.rotation += 0.02;
-        break;
-      case "lancer":
-        this.x += 2.4 * this.side;
-        this.y += 0.35;
-        break;
+    } else {
+      this.clearTint();
     }
   }
 
-  // Every enemy fires here; darts fire as they dive.
-  fireWeapon(arena: Arena): void {
-    switch (this.kind) {
-      case "drone":
-        if (this.age % 100 !== 60 || !arena.rng.chance(0.35)) return;
-        arena.fire(this.x, this.y, aim(this, arena), 2.4);
-        break;
-      case "turret": {
-        const t = this.age - 80;
-        if (t < 0 || this.age > 420 || t % 100 > 40 || t % 8 !== 0) return;
-        arena.fire(this.x, this.y, aim(this, arena), 3.4);
-        break;
-      }
-      case "lancer":
-        if (this.age % 40 !== 20 || this.x < 20 || this.x > WIDTH - 20) return;
-        for (const spread of [-0.25, 0, 0.25]) {
-          arena.fire(this.x, this.y + 8, Math.PI / 2 + spread, 2.6);
-        }
-        break;
-    }
+  aim(arena: Arena): number {
+    return Math.atan2(arena.player.y - this.y, arena.player.x - this.x);
+  }
+
+  /** Returns true when this hit destroys the enemy. */
+  takeDamage(amount: number): boolean {
+    this.hp -= amount;
+    this.flash = 3;
+    return this.hp <= 0;
   }
 
   get fraction(): number {
     return this.hp / this.maxHp;
   }
-
-  phase(): number {
-    return 1;
-  }
-
-  /** Returns true when this hit destroys the prefab. */
-  takeDamage(amount: number): boolean {
-    if (this.isPickup) return false;
-    this.hp -= amount;
-    this.flash = 3;
-    return this.hp <= 0;
-  }
 }
 
 /** The Warden: a three-phase finale whose attacks escalate as it weakens. */
-export class ShmupBoss extends ShmupPrefabSprite {
+export class BossSprite extends EnemySprite {
   readonly core: Phaser.GameObjects.Image;
+
+  private spin: number = 0;
 
   constructor(scene: Phaser.Scene) {
     super(
@@ -142,7 +110,7 @@ export class ShmupBoss extends ShmupPrefabSprite {
     );
   }
 
-  override phase(): number {
+  phase(): number {
     return this.fraction > 2 / 3 ? 1 : this.fraction > 1 / 3 ? 2 : 3;
   }
 
@@ -154,9 +122,6 @@ export class ShmupBoss extends ShmupPrefabSprite {
   override takeDamage(amount: number): boolean {
     return this.arrived ? super.takeDamage(amount) : false;
   }
-
-  // the Warden attacks from step() instead
-  override fireWeapon(): void {}
 
   override step(arena: Arena): void {
     super.step(arena);
@@ -177,7 +142,7 @@ export class ShmupBoss extends ShmupPrefabSprite {
       if (t % 80 === 0) this.fan(arena, 9, 1.2, 3);
       if (t % 80 === 40) {
         for (const d of [-0.12, 0, 0.12]) {
-          arena.fire(this.x, this.y + 30, aim(this, arena) + d, 4.2, true);
+          arena.fire(this.x, this.y + 30, this.aim(arena) + d, 4.2, true);
         }
       }
       if (t % 360 === 180) {
@@ -191,7 +156,7 @@ export class ShmupBoss extends ShmupPrefabSprite {
         arena.fire(this.x, this.y + 6, this.spin + (arm * Math.PI) / 2, 2.6);
       }
       if (t % 48 === 0) {
-        arena.fire(this.x, this.y + 30, aim(this, arena), 4.6, true);
+        arena.fire(this.x, this.y + 30, this.aim(arena), 4.6, true);
       }
     }
   }
@@ -209,14 +174,14 @@ export class ShmupBoss extends ShmupPrefabSprite {
   }
 }
 
-export class ShmupPowerUp extends ShmupPrefabSprite {
+export class ShmupPowerUp extends PrefabSprite {
   constructor(
     scene: Phaser.Scene,
     x: number,
     y: number,
     prefabType: PrefabType,
   ) {
-    super(scene, x, y, x, 1, prefabType);
+    super(scene, x, y, prefabType);
   }
 
   override step(): void {
@@ -224,18 +189,5 @@ export class ShmupPowerUp extends ShmupPrefabSprite {
     this.y += 1.1;
     this.rotation += 0.04;
     this.setScale(1 + 0.12 * Math.sin(this.age * 0.15));
-  }
-
-  // power-ups can't shoot
-  override fireWeapon(): void {}
-
-  // power-ups can't be hurt
-  override takeDamage(): boolean {
-    return false;
-  }
-
-  // power-ups have no boss phases
-  override phase(): number {
-    return 0;
   }
 }

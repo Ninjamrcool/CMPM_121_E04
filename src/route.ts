@@ -1,8 +1,8 @@
 import {
   dartEnemyPrefabType,
   droneEnemyPrefabType,
+  EnemyType,
   lancerEnemyPrefabType,
-  PrefabType,
   turretEnemyPrefabType,
 } from "./prefabTypes.ts";
 
@@ -20,7 +20,7 @@ export interface Wave {
   y: (index: number) => number;
   sectorTime: (index: number) => number;
   enemyCount: number;
-  enemyType: PrefabType;
+  enemyType: EnemyType;
 }
 
 function constantValue(value: number): (index: number) => number {
