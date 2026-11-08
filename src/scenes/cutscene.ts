@@ -16,8 +16,8 @@ const CREDITS_AT = 11;
 const RETURN_AT = 18;
 
 export class CutsceneScene extends ParentScene {
-  private run: Run;
-  private attract: boolean;
+  private run?: Run;
+  private attract: boolean = false;
 
   constructor(
     private readonly hud: Hud,
@@ -27,9 +27,10 @@ export class CutsceneScene extends ParentScene {
 
   override init(data?: { run?: Run; attract?: boolean }): void {
     super.init();
-
-    this.run = data.run;
-    this.attract = data.attract;
+    if (data) {
+      this.run = data.run;
+      this.attract = data.attract ?? false;
+    }
   }
 
   override create(): void {
@@ -86,11 +87,11 @@ export class CutsceneScene extends ParentScene {
     this.time.delayedCall(CREDITS_AT * 1000, () => {
       this.hud.announce(
         "THANK YOU FOR PLAYING",
-        `Final score ${this.run.score}`,
+        `Final score ${this.run?.score}`,
       );
       if (this.attract) {
         this.hud.say(
-          `Self-play: ${this.run.kills} kills, ${this.run.hits} hits, ${this.run.continues} continues`,
+          `Self-play: ${this.run?.kills} kills, ${this.run?.hits} hits, ${this.run?.continues} continues`,
         );
       }
     });

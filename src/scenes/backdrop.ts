@@ -6,7 +6,7 @@ import { ParentScene } from "./parentScene.ts";
 export class Backdrop extends ParentScene {
   /** Scroll speed multiplier; the cutscene raises it for the warp jump. */
   private warp = 1;
-  private layers: [Phaser.GameObjects.TileSprite, number][];
+  private layers!: [Phaser.GameObjects.TileSprite, number][];
 
   constructor() {
     super("backdrop");

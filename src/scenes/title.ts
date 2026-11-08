@@ -70,7 +70,7 @@ export class TitleScene extends ParentScene {
       color: "#8aa4c8",
     }).setOrigin(0.5);
 
-    if (this.options.attract) this.switchScene("play", null, true);
+    if (this.options.attract) this.switchScene("play", undefined, true);
   }
 
   override update(_time: number, delta: number): void {
@@ -80,11 +80,11 @@ export class TitleScene extends ParentScene {
     const left = Math.ceil(IDLE_SECONDS - this.idle);
     this.countdown.setText(`self-play demo in ${left}`);
     if (left <= 0) {
-      this.switchScene("play", null, true);
+      this.switchScene("play", undefined, true);
     }
   }
 
   override onSpace(): void {
-    this.switchScene("play", null, false);
+    this.switchScene("play", undefined, false);
   }
 }

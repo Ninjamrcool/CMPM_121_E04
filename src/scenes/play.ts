@@ -45,7 +45,7 @@ export class PlayScene extends ParentScene implements Arena {
   rng!: Rng;
   player!: Player;
   now = 0;
-  private run: Run;
+  private run!: Run;
   private pilot!: Pilot;
   private enemies: EnemySprite[] = [];
   private shots: Bullet[] = [];
@@ -70,7 +70,7 @@ export class PlayScene extends ParentScene implements Arena {
   override init(data?: { attract?: boolean }): void {
     super.init();
 
-    this.attract = data.attract ?? false;
+    this.attract = data?.attract ?? false;
     this.rng = new Rng(this.options.seed);
     this.now = 0;
     this.carry = 0;
@@ -376,7 +376,6 @@ export class PlayScene extends ParentScene implements Arena {
     this.victoryAt = this.now + VICTORY_TICKS;
     this.hud.setBoss(0);
     this.hud.announce("WARDEN DOWN", "The lanes are open");
-    console.log("victory lap: ship protected =", this.run.bossDefeated);
     // The Warden's fall takes its bullets and escorts with it (no score).
     for (const bullet of this.bullets) {
       this.burst(bullet.x, bullet.y, 2, TINTS.spark);

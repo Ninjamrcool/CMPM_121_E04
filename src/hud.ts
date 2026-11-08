@@ -44,7 +44,7 @@ export class Hud {
       );
       const stop = documentFragment.firstElementChild as HTMLElement;
       const stopName = stop.querySelector<HTMLSpanElement>(".stop-name");
-      stopName.textContent = name;
+      stopName!.textContent = name;
       this.route.appendChild(stop);
       return stop;
     });
